@@ -16,6 +16,7 @@ By default, the plugin uses a separate FastDL folder and creates `.bz2` files fo
 * Optional fallback to uncompressed files if `.bz2` compression fails
 * Ignores common stock maps(CSGO ones listed as default)
 * Only processes supported FastDL file types
+* Automatically scans every minute for new downloadable files and creates missing .bz2 FastDL files
 
 ## Basic idea
 
