@@ -22,8 +22,10 @@ It should work with any game supported by Source.Python. The release archive is 
 * Optional uncompressed file copying
 * Optional fallback to uncompressed files if `.bz2` compression is unavailable or fails
 * Ignores common stock CS:GO maps by default
+* Supports a custom ignored maps file
 * Only processes supported FastDL file types
-* Automatically scans every minute for new downloadable files and creates missing `.bz2` FastDL files
+* Automatically scans for new downloadable files
+* Configurable auto-scan interval
 
 ## Basic idea
 
@@ -66,6 +68,31 @@ fastdl_auto_compress
 fastdl_fallback_uncompressed
 fastdl_copy_uncompressed
 fastdl_auto_create_subdirectories
+fastdl_enable_auto_scan
+fastdl_auto_scan_interval
+fastdl_reload_ignored_maps
 ```
 
-The default setup is intended to work without much configuration, but server owners can adjust the path and file behavior if needed.
+The default setup is intended to work without much configuration, but server owners can adjust the path, compression behavior, and scan behavior if needed.
+
+## Ignored maps
+
+Common stock CS:GO maps are ignored by default.
+
+The plugin also creates an ignored maps file:
+
+```text
+cfg/source-python/fastdl_ignored_maps.txt
+```
+
+You can add extra map names there to block them from FastDL auto-compression. Use one map per line:
+
+```text
+de_dust2
+de_mirage.bsp
+my_private_map
+```
+
+Map names can be written with or without `.bsp` and `.nav` . Lines starting with `#` are ignored.
+
+By default, the ignored maps file is loaded when the plugin loads. If `fastdl_reload_ignored_maps` is enabled, the file is reloaded on every FastDL scan.
