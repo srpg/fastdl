@@ -12,6 +12,37 @@ This plugin requires [Source.Python](https://github.com/Source-Python-Dev-Team/S
 
 It should work with any game supported by Source.Python. The release archive is structured so it can be extracted directly into your game folder, such as `cstrike`, `csgo`, `hl2mp`, or another Source.Python-supported game folder.
 
+## FastDL HTTP Port
+
+By default, the built-in FastDL HTTP server uses the game server `hostport`.
+
+For many servers this is usually `27015`, so the generated FastDL URL may look like this:
+
+```text
+http://your-server-ip:27015
+```
+
+The built-in HTTP server requires an available TCP port. If the plugin prints an error like this:
+
+```text
+FastDL: Server error: [Errno 98] Address already in use
+```
+
+Set `fastdl_server_port` to another open port provided by your host.
+
+```text
+fastdl_server_port 27016(for example)
+```
+
+If no additional port is available and the built-in HTTP server cannot start, set `fastdl_auto_set_fastdl_url` to 0:
+
+fastdl_auto_set_fastdl_url 0
+
+This prevents the plugin from setting sv_downloadurl to a broken FastDL URL, so players will not attempt to download files from an unavailable FastDL server.
+
+The plugin can still be used to automatically prepare and compress FastDL content.
+
+
 ## Features
 
 * Built-in FastDL HTTP server
@@ -21,6 +52,7 @@ It should work with any game supported by Source.Python. The release archive is 
 * Automatically creates `.bz2` compressed files
 * Optional uncompressed file copying
 * Optional fallback to uncompressed files if `.bz2` compression is unavailable or fails
+* Can be used only for preparing and compressing FastDL content if no port is available
 * Ignores common stock CS:GO maps by default
 * Supports a custom ignored maps file
 * Only processes supported FastDL file types
@@ -71,6 +103,8 @@ fastdl_auto_create_subdirectories
 fastdl_enable_auto_scan
 fastdl_auto_scan_interval
 fastdl_reload_ignored_maps
+fastdl_server_port
+fastdl_auto_set_fastdl_url
 ```
 
 The default setup is intended to work without much configuration, but server owners can adjust the path, compression behavior, and scan behavior if needed.

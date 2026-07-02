@@ -45,13 +45,20 @@ with ConfigManager('fastdl') as fastdl_cvar:
     enable_auto_scan = fastdl_cvar.cvar('fastdl_enable_auto_scan', default=1, description='Enable automatic scanning for new FastDL content.')
     auto_scan_interval = fastdl_cvar.cvar('fastdl_auto_scan_interval', default=60, description='How often, in seconds, the plugin scans for new FastDL content.')
     reload_ignored_maps = fastdl_cvar.cvar('fastdl_reload_ignored_maps', default=0, description='Reload the ignored maps file on every FastDL scan. If disabled, it is only loaded when the plugin loads.')
+    fastdl_server_port = fastdl_cvar.cvar('fastdl_server_port', default=0, description='Port used by the built-in FastDL HTTP server. Set to 0 to use the game server hostport. If the port is already in use, set this to another open TCP port.')
+    fastdl_auto_set_fastdl_url = fastdl_cvar.cvar('fastdl_auto_set_fastdl_url', default=1, description='Automatically set sv_downloadurl to the built-in FastDL server URL. Set to 0 to leave sv_downloadurl unchanged, for example if the HTTP server cannot start or no suitable port is available.')
 
 class FastDLConfig:
     """Configuration for FastDL"""
 
     def __init__(self):
         self.public_ip: str = get_public_ip()
-        self.server_port: int = cvar.find_var('hostport').get_int()
+
+        configured_port = fastdl_server_port.get_int()
+        if configured_port > 0:
+            self.server_port = configured_port
+        else:
+            self.server_port = cvar.find_var('hostport').get_int()
 
         if use_custom_path.get_int():
             custom_directory_path = custom_directory.get_string()
@@ -282,8 +289,6 @@ class FastDLPlugin:
         self.server = FastDLServer(self.config)
 
     def load(self) -> None:
-        print("=== FastDL Plugin Loading ===")
-
         if auto_create_subdirectories.get_int():
             self.compressor.ensure_directories_exist()
 
@@ -294,30 +299,25 @@ class FastDLPlugin:
         )
         self.server.server_thread.start()
 
-        download_url = f"http://{self.config.public_ip}:{self.config.server_port}/"
+        if fastdl_auto_set_fastdl_url.get_int():
+            download_url = f"http://{self.config.public_ip}:{self.config.server_port}/"
 
-        cvar.find_var('sv_downloadurl').set_string(download_url)
-        cvar.find_var('sv_allowupload').set_int(0)
-        cvar.find_var('sv_allowdownload').set_int(1)
+            cvar.find_var('sv_downloadurl').set_string(download_url)
+            cvar.find_var('sv_allowupload').set_int(0)
+            cvar.find_var('sv_allowdownload').set_int(1)
 
-        print(f"FastDL: URL -> {download_url}")
+            print(f"FastDL: URL -> {download_url}")
 
         if enable_auto_scan.get_int():
             self.compressor.compress_all_content()
             self.compressor.compression_task.start(auto_scan_interval.get_int())
 
-        print("=== FastDL Plugin Loaded ===\n")
-
     def unload(self) -> None:
-        print("=== FastDL Plugin Unloading ===")
-
         self.compressor.compression_task.stop()
         self.server.stop_server()
 
         if self.server.server_thread and self.server.server_thread.is_alive():
             self.server.server_thread.join(timeout=2.0)
-
-        print("=== FastDL Plugin Unloaded ===\n")
 
 
 fastdl = FastDLPlugin()
